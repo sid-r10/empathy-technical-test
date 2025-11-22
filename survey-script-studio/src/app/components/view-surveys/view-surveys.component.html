@@ -1,0 +1,56 @@
+<div class="container mt-4">
+    <div *ngIf="loading" class="text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  
+    <div *ngIf="error" class="alert alert-danger" role="alert">
+      {{ error }}
+    </div>
+  
+    <div *ngIf="!loading && !error" class="row mb-5">
+    
+      <div class="col-md-4 mb-3" *ngFor="let survey of surveys">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">{{ survey.title }}</h5>
+            <p class="card-text">{{ survey.description }}</p>
+            <p class="card-text">
+              <small class="text-muted">
+                ID: {{ survey.id }} | Questions: {{ survey.questions.length }}
+              </small>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <div *ngIf="!loading && !error">
+      <h3 class="mb-3">Surveys for {{this.userEmail}}</h3>
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Description</th>
+              <th>Number of Questions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let survey of surveys">
+              <td>{{ survey.id }}</td>
+              <td>{{ survey.title }}</td>
+              <td>{{ survey.description }}</td>
+              <td>{{ survey.questions.length }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+    <div *ngIf="!loading && !error && surveys.length === 0" class="alert alert-info">
+      No surveys found.
+    </div>
+  </div>
