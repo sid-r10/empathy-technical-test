@@ -1,12 +1,13 @@
 .navbar {
-  background-color: #702cf5;
-}
-
-.navbar .nav-link,
-.navbar .navbar-brand {
-  color: white;
-}
-
-.navbar .nav-link.active {
-  color: white;
-}
+    background-color: #702cf5;
+    color: white;
+  }
+  
+  .navbar .nav-link,
+  .navbar .navbar-brand {
+    color: white;
+  }
+  
+  .navbar .nav-link.active {
+    color: white;
+  }

@@ -6,9 +6,10 @@ export interface Question {
   questionId: number;
   questionText: string;
   mandatoryInd: boolean;
-  questionType: number;
+  questionType: string;
   options: string[];
   randomizeOptionsInd: boolean;
+  placeholder?: string;
   cards: string[];
   programmerNotes: string;
   instructions: string;
@@ -16,6 +17,12 @@ export interface Question {
 
 export interface Survey {
   id: string;
+  title: string;
+  description: string;
+  questions: Question[];
+}
+
+export interface CreateSurveyRequest {
   title: string;
   description: string;
   questions: Question[];
@@ -37,6 +44,12 @@ export class SurveyService {
 
   getSurveys(email: string): Observable<Survey[]> {
     return this.http.get<Survey[]>(this.apiUrl, {
+      headers: this.getHeaders(email)
+    });
+  }
+
+  createSurvey(survey: CreateSurveyRequest, email: string): Observable<Survey> {
+    return this.http.post<Survey>(this.apiUrl, survey, {
       headers: this.getHeaders(email)
     });
   }

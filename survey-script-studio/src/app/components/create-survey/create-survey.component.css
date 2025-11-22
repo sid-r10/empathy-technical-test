@@ -1,0 +1,74 @@
+:host {
+    display: block;
+    height: calc(100vh - 120px);
+}
+  
+.container-fluid {
+height: 100%;
+}
+
+.card {
+border: 1px solid #dee2e6;
+}
+
+/* Left Card Styling */
+.col-md-3 .card {
+    background-color: #f8f9fa;
+}
+  
+.list-group-item {
+    border: none;
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+}
+  
+.list-group-item:hover {
+    background-color: #e9ecef;
+}
+  
+.list-group-item.active {
+    background-color: #e7f3ff;
+    border-left: 3px solid #0d6efd;
+    color: #702cf5;
+}
+  
+.list-group-item.active .fw-medium {
+    color: #702cf5;
+}
+
+/* Survey Header Styling */
+.fs-3 {
+    font-size: 1.75rem;
+}
+    
+input.form-control.border-0:focus {
+    outline: none;
+    box-shadow: none;
+    border-bottom: 2px solid #0d6efd !important;
+}
+    
+input.form-control.border-0::placeholder {
+    color: #adb5bd;
+    font-weight: normal;
+}
+
+/* Question Cards Styling */
+.question-card {
+    animation: fadeIn 0.3s ease-in;
+}
+  
+.question-card .card {
+    border: 1px solid #dee2e6;
+    border-left: 4px solid #0d6efd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+  
+.question-card .badge {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+}
+  
+.questions-container {
+    min-height: 200px;
+}
