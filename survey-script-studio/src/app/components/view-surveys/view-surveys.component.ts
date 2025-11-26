@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SurveyService, Survey } from '../../services/survey.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-view-surveys',
@@ -14,7 +15,7 @@ export class ViewSurveysComponent implements OnInit {
   loading = false;
   error: string | null = null;
   userEmail: string = 'user1@sss.com'; //sss -> survey script studio :)
-  constructor(private surveyService: SurveyService) { }
+  constructor(private surveyService: SurveyService, private router: Router) { }
 
   ngOnInit(): void {
     this.loadSurveys();
@@ -35,5 +36,10 @@ export class ViewSurveysComponent implements OnInit {
         console.error('Error loading surveys:', err);
       }
     });
+  }
+
+  editSurvey(survey: Survey): void {
+    this.surveyService.setSelectedSurvey(survey);
+    this.router.navigate(['/create-survey']);
   }
 }

@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SurveyService, CreateSurveyRequest, Question } from '../../services/survey.service';
+import { SurveyService, CreateSurveyRequest, Question, Survey } from '../../services/survey.service';
+import { Router } from '@angular/router';
 
 enum QuestionType {
   SINGLE_CHOICE = 'single-choice',
@@ -55,8 +56,14 @@ export class CreateSurveyComponent {
   maxQuestions: number = 5;
   nextQuestionId: number = 1;
   surveyId: string | null = null;
+  editSurvey: Survey | undefined;
 
-  constructor(private surveyService: SurveyService) {}
+  constructor(private surveyService: SurveyService, private router: Router ) {
+    this.editSurvey = this.surveyService.getSelectedSurvey();
+    if(this.editSurvey){
+      this.loadSurvey();
+    }
+  }
 
   onSubmit(): void {
     if (!this.title || !this.description) {
@@ -209,7 +216,7 @@ export class CreateSurveyComponent {
       title: this.surveyTitle,
       description: this.surveySubtitle,
       questions: this.questions.map((q, index) => ({
-        questionId: index,
+        questionId: index + 1,
         questionText: q.questionText || '', // Allow empty question text
         mandatoryInd: q.mandatoryInd || false,
         questionType: q.questionType, // Already a number, no conversion needed
@@ -297,7 +304,6 @@ export class CreateSurveyComponent {
       next: (data) => {
         this.surveyId = data[0].id;
         this.loading = false;
-        console.log('Survey ID = ', this.surveyId);
         
       },
       error: (err) => {
@@ -306,5 +312,17 @@ export class CreateSurveyComponent {
         console.error('Error loading surveys:', err);
       }
     });
+  }
+
+  loadSurvey(): void {
+    if(this.editSurvey) {
+      this.surveyTitle = this.editSurvey.title;
+      this.surveySubtitle = this.editSurvey.description;
+      this.questions = this.editSurvey.questions;
+    }
+  }
+  ngOnDestroy(): void {
+    this.editSurvey = undefined;
+    this.surveyService.clearSelectedSurvey();
   }
 }

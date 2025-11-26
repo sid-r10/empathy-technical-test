@@ -1,0 +1,11 @@
+.btn {
+    border: 1px solid #702cf5;
+    background-color: white;
+    color: #702cf5
+}
+
+.btn:hover {
+    background-color: #702cf5; /* darker blue */
+    transform: scale(1.05);    /* slight zoom effect */
+    cursor: pointer;
+  }

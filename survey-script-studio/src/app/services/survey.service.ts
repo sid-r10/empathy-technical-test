@@ -58,5 +58,19 @@ export class SurveyService {
     return this.http.put<Survey>(this.apiUrl + `/${survey.id}`, survey, {
       headers: this.getHeaders(email)
     });
-  } 
+  }
+
+  private selectedSurvey: any | null = null;
+
+  setSelectedSurvey(survey: any) {
+    this.selectedSurvey = survey;
+  }
+
+  getSelectedSurvey() {
+    return this.selectedSurvey;
+  }
+
+  clearSelectedSurvey() {
+    this.selectedSurvey = null;
+  }
 }
