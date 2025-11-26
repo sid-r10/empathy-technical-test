@@ -6,7 +6,7 @@ export interface Question {
   questionId: number;
   questionText: string;
   mandatoryInd: boolean;
-  questionType: string;
+  questionType: number;
   options: string[];
   randomizeOptionsInd: boolean;
   placeholder?: string;
@@ -23,6 +23,7 @@ export interface Survey {
 }
 
 export interface CreateSurveyRequest {
+  id: string;
   title: string;
   description: string;
   questions: Question[];
@@ -32,8 +33,7 @@ export interface CreateSurveyRequest {
   providedIn: 'root'
 })
 export class SurveyService {
-  private apiUrl = 'https://techtestapi1.azurewebsites.net/survey';
-
+  private apiUrl = 'https://techtestapi1.azurewebsites.net/survey'; 
   constructor(private http: HttpClient) { }
 
   private getHeaders(email: string): HttpHeaders {
@@ -53,4 +53,10 @@ export class SurveyService {
       headers: this.getHeaders(email)
     });
   }
+
+  updateSurvey(survey: CreateSurveyRequest, email: string): Observable<Survey> {
+    return this.http.put<Survey>(this.apiUrl + `/${survey.id}`, survey, {
+      headers: this.getHeaders(email)
+    });
+  } 
 }

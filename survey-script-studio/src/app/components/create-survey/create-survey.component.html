@@ -25,6 +25,22 @@
     <div class="col-md-9 h-100">
         <div class="card h-100 rounded-0">
             <div class="card-body">
+                <!-- Save Status Messages -->
+                <div *ngIf="saveSuccess" class="alert alert-success alert-dismissible fade show" role="alert">
+                    Survey saved successfully!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div *ngIf="loading" class="alert alert-info">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Saving survey...
+                </div>
+
                 <!-- Survey Title -->
                 <input 
                 type="text" 
@@ -55,33 +71,102 @@
                     <div *ngFor="let question of questions; let i = index" class="question-card mb-4">
                         <div class="card border">
                             <div class="card-body">
-                            <!-- Question Header -->
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="d-flex align-items-center">
-                                <span class="badge bg-secondary me-2">Q{{ question.questionId }}</span>
-                                <select 
-                                    class="form-select form-select-sm d-inline-block" 
-                                    style="width: auto;"
-                                    [(ngModel)]="question.questionType"
+                              <!-- Question Header -->
+                              <div class="d-flex justify-content-between align-items-center mb-3">
+                                  <div class="d-flex align-items-center">
+                                  <span class="badge bg-secondary me-2">Q{{ question.questionId }}</span>
+                                  <select 
+                                      class="form-select form-select-sm d-inline-block" 
+                                      style="width: auto;"
+                                      [value]="getQuestionTypeString(question.questionType)"
+                                      (change)="updateQuestionType(i, $any($event.target).value)">
+                                      <option value="single-choice">Single Choice</option>
+                                      <option value="multiple-choice">Multiple Choice</option>
+                                      <option value="single-line-input">Single-Line Input</option>
+                                      <option value="dropdown-list">Dropdown List</option>
+                                  </select>
+                                  </div>
+                                  <button 
+                                  type="button" 
+                                  class="btn btn-sm btn-outline-danger"
+                                  (click)="removeQuestion(i)">
+                                  Remove
+                                  </button>
+                              </div>
+                      
+                              <!-- Question Content will be added in Step 5 -->
+                              <!-- Question Content -->
+                              <div class="question-content">
+                              <!-- Question Text -->
+                                <div class="mb-3">
+                                  <textarea 
+                                    class="form-control" 
+                                    rows="2"
+                                    placeholder="Type your question here"
+                                    [(ngModel)]="question.questionText"
                                     [ngModelOptions]="{standalone: true}">
-                                    <option value="single-choice">Single Choice</option>
-                                    <option value="multiple-choice">Multiple Choice</option>
-                                    <option value="single-line-input">Single-Line Input</option>
-                                    <option value="dropdown-list">Dropdown List</option>
-                                </select>
+                                  </textarea>
                                 </div>
-                                <button 
-                                type="button" 
-                                class="btn btn-sm btn-outline-danger"
-                                (click)="removeQuestion(i)">
-                                Remove
-                                </button>
-                            </div>
-                    
-                            <!-- Question Content will be added in Step 5 -->
-                            <div class="question-content">
-                                <p class="text-muted">Question content will go here...</p>
-                            </div>
+
+                                <!-- Options (for choice/dropdown types) -->
+                                <div 
+                                  *ngIf="!isSingleLineInput(question.questionType)"
+                                  class="mb-3">
+                                  <label class="form-label">Options:</label>
+                                  
+                                  <div *ngFor="let option of question.options; let optIndex = index;" class="mb-2 d-flex gap-2">
+                                    <input 
+                                      type="text" 
+                                      class="form-control" 
+                                      [placeholder]="'Option ' + (optIndex + 1)"
+                                      [(ngModel)]="question.options[optIndex]"
+                                      [ngModelOptions]="{standalone: true}">
+                                    <button 
+                                      type="button" 
+                                      class="btn btn-sm btn-danger"
+                                      (click)="removeOption(i, optIndex)">
+                                      ×
+                                    </button>
+                                  </div>
+                                  
+                                  <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-outline-primary"
+                                    (click)="addOption(i)">
+                                    + Add Option
+                                  </button>
+                                </div>
+
+                                <!-- Settings -->
+                                 <div class="container">
+                                  <div class="row">
+                                    <div class="col-8">
+
+                                    </div>
+                                    <div class="col-4">
+                                      <div class="d-flex justify-content-right gap-3 mt-3">
+                                        <div class="form-check form-switch" *ngIf="!isSingleLineInput(question.questionType)">
+                                          <label class="form-check-label">Randomize options</label>
+                                          <input 
+                                            class="form-check-input" 
+                                            type="checkbox" 
+                                            [(ngModel)]="question.randomizeOptionsInd"
+                                            [ngModelOptions]="{standalone: true}">
+                                        </div>
+                                        
+                                        <div class="form-check form-switch">
+                                          <label class="form-check-label">Make Required</label>
+                                          <input 
+                                            class="form-check-input" 
+                                            type="checkbox" 
+                                            [(ngModel)]="question.mandatoryInd"
+                                            [ngModelOptions]="{standalone: true}">
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                 </div>
+                              </div>
                             </div>
                         </div>
                     </div>
@@ -91,7 +176,7 @@
                         <button 
                             type="button" 
                             class="btn btn-link text-primary"
-                            (click)="selectedQuestionType = null">
+                            (click)="addAnotherQuestion()">
                             + Add a question
                         </button>
                     </div>

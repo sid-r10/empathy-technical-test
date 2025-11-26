@@ -24,6 +24,7 @@ export class CreateSurveyComponent {
   loading = false;
   success = false;
   error: string | null = null;
+  saveSuccess = false;
   userEmail: string = 'user1@sss.com'; //sss -> survey script studio :)
   questionTypes = [
     {
@@ -52,7 +53,8 @@ export class CreateSurveyComponent {
   selectedQuestionType: string | null = null;
   questions: Question[] = [];
   maxQuestions: number = 5;
-  nextQuestionId: number = 1; 
+  nextQuestionId: number = 1;
+  surveyId: string | null = null;
 
   constructor(private surveyService: SurveyService) {}
 
@@ -67,6 +69,7 @@ export class CreateSurveyComponent {
     this.success = false;
 
     const surveyData: CreateSurveyRequest = {
+      id: '',
       title: this.title,
       description: this.description,
       questions: []
@@ -88,33 +91,57 @@ export class CreateSurveyComponent {
   }
 
   onQuestionTypeClick(questionTypeId: string): void {
-    this.selectedQuestionType = questionTypeId;
-    console.log(this.selectedQuestionType);
+    if (this.questions.length >= this.maxQuestions) {
+      alert(`Maximum ${this.maxQuestions} questions allowed.`);
+      return;
+    }
+    
+    const questionTypeNumber = this.getQuestionTypeNumber(questionTypeId);
+  
+    const newQuestion: Question = {
+      questionId: this.nextQuestionId++,
+      questionText: '',
+      questionType: questionTypeNumber,
+      mandatoryInd: false,
+      options: ['Option 1', 'Option 2'], // Initialize with default options
+      randomizeOptionsInd: false,
+      cards: [],
+      programmerNotes: '',
+      instructions: ''
+    };
+  
+    // Ensure options is initialized for choice types
+    if (questionTypeId === 'single-choice' || 
+        questionTypeId === 'multiple-choice' || 
+        questionTypeId === 'dropdown-list') {
+      newQuestion.options = ['Option 1', 'Option 2'];
+    } else {
+      newQuestion.options = [];
+    }
+  
+    this.questions.push(newQuestion);
+    this.selectedQuestionType = null;
+    
+    this.saveSurvey();
+  }
 
+  // Add a new question of the same type as the last question
+  addAnotherQuestion(): void {
     if (this.questions.length >= this.maxQuestions) {
       alert(`Maximum ${this.maxQuestions} questions allowed.`);
       return;
     }
 
-    const newQuestion: Question = {
-      questionId: this.nextQuestionId++,
-      questionText: '',
-      questionType: questionTypeId,
-      mandatoryInd: false,
-      options: questionTypeId === 'single-choice' || 
-              questionTypeId === 'multiple-choice' || 
-              questionTypeId === 'dropdown-list' ? ['Option 1', 'Option 2'] : [],
-      randomizeOptionsInd: false,
-      placeholder: questionTypeId === 'single-line-input' ? 'Enter your answer...' : undefined,
-      cards: [],
-      programmerNotes: '',
-      instructions: ''
-    };
+    if (this.questions.length === 0) {
+      
+      return;
+    }
 
-    this.questions.push(newQuestion);
+    const lastQuestion = this.questions[this.questions.length - 1];
+    const lastQuestionTypeString = this.getQuestionTypeString(lastQuestion.questionType);
     
-    this.selectedQuestionType = null;
-    
+    // Add a question of the same type
+    this.onQuestionTypeClick(lastQuestionTypeString);
   }
 
   removeQuestion(index: number): void {
@@ -124,5 +151,160 @@ export class CreateSurveyComponent {
       q.questionId = i + 1;
     });
     this.nextQuestionId = this.questions.length + 1;
+  }
+
+  // Get options array for a specific question
+  getQuestionOptions(questionIndex: number): string[] {
+    return this.questions[questionIndex].options || [];
+  }
+
+  // Add a new option to a question
+  addOption(questionIndex: number): void {
+    if (!this.questions[questionIndex].options) {
+      this.questions[questionIndex].options = [];
+    }
+    this.questions[questionIndex].options!.push('');
+  }
+
+  // Remove an option from a question
+  removeOption(questionIndex: number, optionIndex: number): void {
+    if (this.questions[questionIndex].options) {
+      this.questions[questionIndex].options!.splice(optionIndex, 1);
+    }
+  }
+
+  // Update an option value
+  updateOption(questionIndex: number, optionIndex: number, value: string): void {
+    if (this.questions[questionIndex].options) {
+      this.questions[questionIndex].options![optionIndex] = value;
+    }
+  }
+
+  // Update question type (converts string from dropdown to number)
+  updateQuestionType(questionIndex: number, questionTypeString: string): void {
+    this.questions[questionIndex].questionType = this.getQuestionTypeNumber(questionTypeString);
+  }
+
+  
+  saveSurvey(): void {
+    if (!this.surveyTitle || this.surveyTitle.trim() === '') {
+      this.error = 'Survey title is required';
+      this.saveSuccess = false;
+      return;
+    }
+
+    if (this.questions.length === 0) {
+      this.error = 'Please add at least one question';
+      this.saveSuccess = false;
+      return;
+    }
+
+    this.loading = true;
+    this.error = null;
+    this.saveSuccess = false;
+
+    // Build survey payload
+    const surveyPayload: CreateSurveyRequest = {
+      id: this.surveyId || '',
+      title: this.surveyTitle,
+      description: this.surveySubtitle,
+      questions: this.questions.map((q, index) => ({
+        questionId: index,
+        questionText: q.questionText || '', // Allow empty question text
+        mandatoryInd: q.mandatoryInd || false,
+        questionType: q.questionType, // Already a number, no conversion needed
+        options: q.options || [],
+        randomizeOptionsInd: q.randomizeOptionsInd || false,
+        cards: q.cards || [],
+        programmerNotes: q.programmerNotes || '',
+        instructions: q.instructions || ''
+      }))
+    };
+
+    // Call API service based on save/update
+    if(this.surveyId){
+      this.surveyService.updateSurvey(surveyPayload, this.userEmail).subscribe({
+        next: (res) => {
+          this.saveSuccess = true;
+          this.loading = false;
+          this.error = null;
+          console.log('Survey Updated = ', this.surveyId);
+          
+          // Clear success message after 2 seconds
+          setTimeout(() => {
+            this.saveSuccess = false;
+          }, 2000);
+        },
+        error: (err) => {
+          this.error = 'Failed to save survey. Please try again.';
+          this.loading = false;
+          this.saveSuccess = false;
+          console.error('Error saving survey:', err);
+        }
+      });
+    } else {
+      this.surveyService.createSurvey(surveyPayload, this.userEmail).subscribe({
+        next: (res) => {
+          this.saveSuccess = true;
+          this.loading = false;
+          this.error = null;
+          
+          // Clear success message after 2 seconds
+          setTimeout(() => {
+            this.saveSuccess = false;
+          }, 2000);
+        },
+        error: (err) => {
+          this.error = 'Failed to save survey. Please try again.';
+          this.loading = false;
+          this.saveSuccess = false;
+          console.error('Error saving survey:', err);
+        }
+      });
+    }
+    this.getSurvey();
+  }
+
+  // Helper function to convert question type string to number
+  getQuestionTypeNumber(questionType: string): number {
+    const typeMap: { [key: string]: number } = {
+      'single-choice': 0,
+      'multiple-choice': 1,
+      'single-line-input': 2,
+      'dropdown-list': 3
+    };
+    return typeMap[questionType] || 0;
+  }
+
+  // Helper function to convert question type number to string
+  getQuestionTypeString(questionType: number): string {
+    const typeMap: { [key: number]: string } = {
+      0: 'single-choice',
+      1: 'multiple-choice',
+      2: 'single-line-input',
+      3: 'dropdown-list'
+    };
+    return typeMap[questionType] || 'single-choice';
+  }
+
+  // Helper function to check if question type is single-line-input
+  isSingleLineInput(questionType: number): boolean {
+    return questionType === 2;
+  }
+
+  getSurvey(): void {
+    this.surveyService.getSurveys(this.userEmail).subscribe({
+      next: (data) => {
+        this.surveyId = data[0].id;
+        this.loading = false;
+        console.log('Survey ID = ', this.surveyId);
+        
+      },
+      error: (err) => {
+        this.error = 'Failed to load surveys';
+        this.loading = false;
+        console.error('Error loading surveys:', err);
+      }
+    });
   }
 }
