@@ -1,6 +1,7 @@
 # Survey Script Studio
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.19.
+visit this link to see the live web application: [Survey Script Studio](https://survey-script-studio.netlify.app/)
 
 ## Prerequisites
 
